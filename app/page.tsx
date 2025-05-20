@@ -6,6 +6,7 @@ import { CoursesSection } from "@/components/courses-section"
 import { ComingSoonSection } from "@/components/coming-soon-section"
 import { Footer } from "@/components/footer"
 import { LanguageProvider } from "@/components/language-provider"
+import Link from "next/link"
 
 export default function Home() {
   return (
@@ -16,6 +17,9 @@ export default function Home() {
             AI<span className="text-primary">Dev</span>Hub
           </div>
           <div className="flex items-center gap-4">
+            <Link href="/mini-courses" className="mr-4 text-foreground/70 hover:text-primary transition-colors">
+              Mini Courses
+            </Link>
             <LanguageToggle />
             <ThemeToggle />
           </div>
