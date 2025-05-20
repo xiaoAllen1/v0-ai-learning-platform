@@ -2,6 +2,7 @@ import fs from "fs"
 import path from "path"
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { Suspense } from "react"
 import { ChevronLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { CourseContent } from "@/components/course-content"
@@ -91,7 +92,9 @@ export default async function CoursePage({ params }: { params: { slug: string } 
           </Link>
         </div>
 
-        <CourseContent course={course} courseIndex={courseIndex} />
+        <Suspense fallback={<div>Loading course content...</div>}>
+          <CourseContent course={course} courseIndex={courseIndex} />
+        </Suspense>
       </div>
     </div>
   )

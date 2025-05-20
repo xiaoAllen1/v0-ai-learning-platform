@@ -1,12 +1,11 @@
 "use client"
 
 import type React from "react"
-
-import { useEffect, useState, useRef } from "react"
-import { useRouter, usePathname, useSearchParams } from "next/navigation"
+import { useEffect, useState, useRef, Suspense } from "react"
+import { usePathname } from "next/navigation"
 import Link from "next/link"
 import ReactMarkdown from "react-markdown"
-import remarkGfm from "remark-gfm" // Fixed import
+import remarkGfm from "remark-gfm"
 import rehypeRaw from "rehype-raw"
 import { Card } from "@/components/ui/card"
 
@@ -26,16 +25,9 @@ interface CourseContentProps {
   courseIndex?: CourseIndex[]
 }
 
-export function CourseContent({ course, courseIndex = [] }: CourseContentProps) {
-  const [localCourseIndex, setLocalCourseIndex] = useState<CourseIndex[]>(courseIndex)
-  const [processedContent, setProcessedContent] = useState(course.content)
-  const [mermaidLoaded, setMermaidLoaded] = useState(false)
-  const articleRef = useRef<HTMLElement>(null)
-  const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
-
-  // Handle URL fragment for scrolling to section
+// Separate component that uses useSearchParams
+function FragmentHandler() {
+  // This component will handle URL fragments
   useEffect(() => {
     // Get the hash from the URL
     const hash = window.location.hash
@@ -55,7 +47,17 @@ export function CourseContent({ course, courseIndex = [] }: CourseContentProps) 
 
       return () => clearTimeout(timer)
     }
-  }, [pathname, searchParams, processedContent])
+  }, [])
+
+  return null
+}
+
+export function CourseContent({ course, courseIndex = [] }: CourseContentProps) {
+  const [localCourseIndex, setLocalCourseIndex] = useState<CourseIndex[]>(courseIndex)
+  const [processedContent, setProcessedContent] = useState(course.content)
+  const [mermaidLoaded, setMermaidLoaded] = useState(false)
+  const articleRef = useRef<HTMLElement>(null)
+  const pathname = usePathname()
 
   // Handle click on internal anchor links
   const handleInternalLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
@@ -353,6 +355,9 @@ export function CourseContent({ course, courseIndex = [] }: CourseContentProps) 
           {processedContent}
         </ReactMarkdown>
       </article>
+      <Suspense fallback={null}>
+        <FragmentHandler />
+      </Suspense>
     </Card>
   )
 }

@@ -4,6 +4,8 @@ import { useLanguage } from "./language-provider"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { BookOpen, Code, Newspaper } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
 
 export function CoursesSection() {
   const { t } = useLanguage()
@@ -46,9 +48,15 @@ export function CoursesSection() {
                 <CardDescription className="text-foreground/70 text-sm">{course.description}</CardDescription>
               </CardContent>
               <CardFooter>
-                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                  {course.status}
-                </Badge>
+                {index === 0 ? (
+                  <Link href="/mini-courses">
+                    <Button size="sm">Explore Courses</Button>
+                  </Link>
+                ) : (
+                  <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                    {course.status}
+                  </Badge>
+                )}
               </CardFooter>
             </Card>
           ))}

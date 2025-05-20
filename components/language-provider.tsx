@@ -28,7 +28,7 @@ const translations = {
     // Courses section
     "courses.mini.title": "Mini Courses",
     "courses.mini.description": "Short, beginner-friendly lessons designed to teach one AI concept at a time.",
-    "courses.mini.status": "To Be Developed",
+    "courses.mini.status": "Available Now",
     "courses.tutorials.title": "AI Dev Tutorials",
     "courses.tutorials.description":
       'How to integrate AI into real-world apps (e.g., "Use GPT in your Flask app", "Add AI search to your product").',
@@ -67,7 +67,7 @@ const translations = {
     // Courses section
     "courses.mini.title": "迷你课程",
     "courses.mini.description": "简短、适合初学者的课程，旨在一次教授一个AI概念。",
-    "courses.mini.status": "即将推出",
+    "courses.mini.status": "现已推出",
     "courses.tutorials.title": "AI开发教程",
     "courses.tutorials.description": '如何将AI集成到实际应用中（例如，"在Flask应用中使用GPT"，"为产品添加AI搜索"）。',
     "courses.tutorials.status": "即将推出",
