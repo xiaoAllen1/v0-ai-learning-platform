@@ -1,9 +1,12 @@
 "use client"
 
+import type React from "react"
+
 import { useEffect, useState, useRef } from "react"
+import { useRouter, usePathname, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import ReactMarkdown from "react-markdown"
-import remarkGfm from "remark-gfm"
+import remarkGfm from "remark-gfm" // Fixed import
 import rehypeRaw from "rehype-raw"
 import { Card } from "@/components/ui/card"
 
@@ -28,6 +31,52 @@ export function CourseContent({ course, courseIndex = [] }: CourseContentProps) 
   const [processedContent, setProcessedContent] = useState(course.content)
   const [mermaidLoaded, setMermaidLoaded] = useState(false)
   const articleRef = useRef<HTMLElement>(null)
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
+  // Handle URL fragment for scrolling to section
+  useEffect(() => {
+    // Get the hash from the URL
+    const hash = window.location.hash
+
+    if (hash) {
+      // Remove the # character
+      const id = hash.substring(1)
+
+      // Add a slight delay to ensure the DOM is fully rendered
+      const timer = setTimeout(() => {
+        const element = document.getElementById(id)
+        if (element) {
+          // Scroll to the element
+          element.scrollIntoView({ behavior: "smooth", block: "start" })
+        }
+      }, 100)
+
+      return () => clearTimeout(timer)
+    }
+  }, [pathname, searchParams, processedContent])
+
+  // Handle click on internal anchor links
+  const handleInternalLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href.startsWith("#")) {
+      e.preventDefault()
+
+      // Get the target ID
+      const id = href.substring(1)
+
+      // Update the URL with the hash
+      window.history.pushState({}, "", `${pathname}${href}`)
+
+      // Add a slight delay to ensure the DOM is fully rendered
+      setTimeout(() => {
+        const element = document.getElementById(id)
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "start" })
+        }
+      }, 100)
+    }
+  }
 
   // Initialize mermaid
   useEffect(() => {
@@ -147,25 +196,39 @@ export function CourseContent({ course, courseIndex = [] }: CourseContentProps) 
     return content.replace(linkedConceptsSection, modifiedSection)
   }
 
-  // Handle anchor links - smooth scroll to section
-  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    // Only handle hash/anchor links that start with #
-    if (!href.startsWith("#")) return
-    
-    e.preventDefault()
-    
-    // Remove the # from the href to get the id
-    const targetId = href.substring(1)
-    const targetElement = document.getElementById(targetId)
-    
-    if (targetElement) {
-      // Smooth scroll to the target element
-      targetElement.scrollIntoView({ behavior: "smooth" })
-      
-      // Update the URL without navigating
-      window.history.pushState(null, "", href)
+  // Process anchor links in markdown to create proper HTML IDs
+  useEffect(() => {
+    // Add IDs to all headings and named anchors after the content is rendered
+    const addIdsToHeadings = () => {
+      // Find all headings
+      const headings = document.querySelectorAll("h1, h2, h3, h4, h5, h6")
+      headings.forEach((heading) => {
+        if (!heading.id) {
+          // Create an ID from the heading text
+          const id = heading.textContent
+            ?.toLowerCase()
+            .replace(/[^\w\s-]/g, "") // Remove special chars
+            .replace(/\s+/g, "-") // Replace spaces with hyphens
+            .trim()
+
+          if (id) heading.id = id
+        }
+      })
+
+      // Find all named anchors and create corresponding IDs
+      const namedAnchors = document.querySelectorAll("a[name]")
+      namedAnchors.forEach((anchor) => {
+        const name = anchor.getAttribute("name")
+        if (name) {
+          anchor.id = name
+        }
+      })
     }
-  }
+
+    // Run after a short delay to ensure content is rendered
+    const timer = setTimeout(addIdsToHeadings, 500)
+    return () => clearTimeout(timer)
+  }, [processedContent])
 
   // Custom renderer for code blocks to handle mermaid
   const components = {
@@ -215,18 +278,18 @@ export function CourseContent({ course, courseIndex = [] }: CourseContentProps) 
       // Handle in-page anchor links
       if (href?.startsWith("#")) {
         return (
-          <a 
-            href={href} 
-            className="text-primary hover:underline" 
-            onClick={(e) => scrollToSection(e, href)}
+          <a
+            href={href}
+            className="text-primary hover:underline"
+            onClick={(e) => handleInternalLinkClick(e, href)}
             {...props}
           >
             {children}
           </a>
         )
       }
-      
-      // Handle internal links to other routes
+
+      // Handle internal navigation links
       if (href?.startsWith("/")) {
         return (
           <Link href={href} className="text-primary hover:underline" {...props}>
@@ -242,24 +305,26 @@ export function CourseContent({ course, courseIndex = [] }: CourseContentProps) 
         </a>
       )
     },
-    // Add ID attributes to headings for anchor links
     h1({ children, ...props }: any) {
-      const id = typeof children === "string" 
-        ? children.toLowerCase().replace(/\s+/g, "-") 
-        : "";
-      return <h1 id={id} className="text-3xl font-bold mt-8 mb-4" {...props}>{children}</h1>
+      return (
+        <h1 className="text-3xl font-bold mt-8 mb-4" {...props}>
+          {children}
+        </h1>
+      )
     },
     h2({ children, ...props }: any) {
-      const id = typeof children === "string" 
-        ? children.toLowerCase().replace(/\s+/g, "-") 
-        : "";
-      return <h2 id={id} className="text-2xl font-bold mt-8 mb-4" {...props}>{children}</h2>
+      return (
+        <h2 className="text-2xl font-bold mt-8 mb-4" {...props}>
+          {children}
+        </h2>
+      )
     },
     h3({ children, ...props }: any) {
-      const id = typeof children === "string" 
-        ? children.toLowerCase().replace(/\s+/g, "-") 
-        : "";
-      return <h3 id={id} className="text-xl font-bold mt-6 mb-3" {...props}>{children}</h3>
+      return (
+        <h3 className="text-xl font-bold mt-6 mb-3" {...props}>
+          {children}
+        </h3>
+      )
     },
     p({ children }: any) {
       return <p className="my-4">{children}</p>
